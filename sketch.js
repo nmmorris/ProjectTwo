@@ -506,11 +506,11 @@ class SexRoom extends PNGRoom {
     // Draw porn window with lesbians inside
     drawSprite(sexySprite);
 
-    // Draw other porn ads
+    // Draw other porn ads only if they haven't been censored yet
     if (!censoredXXX) {
       image(sexyXXX, 1000, 10);
     }
-    else if (censored18Plus){
+    else if (censoredXXX){
       image(sexyXXXBlack, 1000, 10);
     }
 
@@ -561,6 +561,7 @@ class SexRoom extends PNGRoom {
       drawSprite(censorXXXSprite);
       drawSprite(censorPornSprite);
       drawSprite(censor18PlusSprite);
+      // When the sprite touches the censor buttons, they will disappear
       if (playerSprite.overlap(censorXXXSprite)) {
         censorXXXSprite.remove();
         censoredXXX = true;
@@ -576,6 +577,7 @@ class SexRoom extends PNGRoom {
       }
     }
 
+    // If all censor buttons are pressed, the escape window will appear
     if ( (censoredXXX) && (censoredPorn) && (censored18Plus) ) {
       escActive = true;
       image(sexyEsc, 50, 50);
