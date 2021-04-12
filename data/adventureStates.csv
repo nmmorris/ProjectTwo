@@ -1,6 +1,6 @@
 ID,StateName,ClassName,PNGFilename,CollisionFilename
 0,Instructions,InstructionsScreen,assets/instructions/background.png,
 1,Sexy,SexRoom,assets/sexroom/background.png,
-2,Het,PNGRoom,assets/hetroom/background.png,
+2,Het,HetRoom,assets/hetroom/background.png,
 3,White,PNGRoom,assets/room_whiteroom.png,
 4,Evil,PNGRoom,assets/room_meanroom.png,

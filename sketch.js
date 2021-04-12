@@ -37,13 +37,21 @@ var spriteLeftWalk;;
 var spriteRightWalk;
 var spriteBackWalk;
 
-// Other sprite variables
+// Instructions sprite variables
 var starSprite;
 var startScreenSprite;
+
+// Sexy sprite variables
 var sexySprite;
 var censorXXXSprite;
 var censorPornSprite;
 var censor18PlusSprite;
+
+// Hetero sprite vairables
+var hetSprite;
+var person1Exclaim;
+var person2Exclaim;
+var person3Exclaim;
 
 // Button variables
 var textWindow;
@@ -71,11 +79,26 @@ var sexyMouse;
 var sexyPointer;
 var sexyCensor;
 
+// Hetero room image variables
+var hetDetail;
+var hetDialogue1;
+var hetDialogue2;
+var hetDialogue3;
+var hetExclaim;
+var hetExit;
+var hetHearts;
+var hetCouple;
+var hetMan;
+var hetWoman;
+
 // Detail movement variables
 var detailMove;
 var detailSpeed;
 
 // Interaction booleans
+var gameNotStarted = true;
+
+// Interaction booleans for sexy room
 var portalOpen = false;
 var sexyRoomActive = false;
 var interactSexyLadies = false;
@@ -84,6 +107,21 @@ var censored18Plus = false;;
 var censoredXXX = false;
 var censoredPorn = false;
 var escActive = false;
+
+// Interaction booleans for het room
+var hetRoomActive = false;
+var interactHetCouple = false;
+var couplesOpen = false;
+var exitActive = false;
+var couple1Done = false;
+var couple2Done = false;
+var couple3Done = false;
+
+// Hetero room movement variables
+var person1Move;
+var person2Move;
+var person3Move;
+var person4Move;
 
 // Allocate Adventure Manager with states table and interaction tables and load animations
 function preload() {
@@ -101,6 +139,11 @@ function preload() {
   sexyDialogue2 = loadImage('assets/sexroom/dialogue2.png')
   sexyDialogue3 = loadImage('assets/sexroom/dialogue3.png')
   sexyPornBlack = loadImage('assets/sexroom/pornblack.png');
+
+  // Load clickable images for hetero room
+  hetDialogue1 = loadImage('assets/hetroom/dialogue1.png')
+  hetDialogue2 = loadImage('assets/hetroom/dialogue2.png')
+  hetDialogue3 = loadImage('assets/hetroom/dialogue3.png')
 
   // Load sprite animations
   spriteFrontIdle = loadAnimation('assets/sprite/em_spritefront1.png', 'assets/sprite/em_spritefront2.png');
@@ -129,26 +172,43 @@ function setup() {
   // Create MC sprite
   playerSprite = createSprite(width/2, height/2);
 
-  // Create other sprites
-  starSprite = createSprite(width/2 - 450, height/2);
-  starSprite.addImage(loadImage('assets/instructions/star.png'));
+  // Create sexy sprites
+    starSprite = createSprite(width/2 - 450, height/2);
+    starSprite.addImage(loadImage('assets/instructions/star.png'));
 
-  startScreenSprite = createSprite(width/2, height/2);
-  startScreenSprite.addImage(loadImage('assets/instructions/screen.png'));
+    startScreenSprite = createSprite(width/2, height/2);
+    startScreenSprite.addImage(loadImage('assets/instructions/screen.png'));
 
-  sexySprite = createSprite(width/2, height/2);
-  sexySprite.addImage(loadImage('assets/sexroom/pornwindow.png'));
+    sexySprite = createSprite(width/2, height/2);
+    sexySprite.addImage(loadImage('assets/sexroom/pornwindow.png'));
 
-  censorXXXSprite = createSprite(1120, 200);
-  censorXXXSprite.addImage(loadImage('assets/sexroom/censorbutton.png'));
-  censor18PlusSprite = createSprite(140, 320);
-  censor18PlusSprite.addImage(loadImage('assets/sexroom/censorbutton.png'));
-  censorPornSprite = createSprite(width/2, 560);
-  censorPornSprite.addImage(loadImage('assets/sexroom/censorbutton.png'));
+    censorXXXSprite = createSprite(1120, 200);
+    censorXXXSprite.addImage(loadImage('assets/sexroom/censorbutton.png'));
+    censor18PlusSprite = createSprite(140, 320);
+    censor18PlusSprite.addImage(loadImage('assets/sexroom/censorbutton.png'));
+    censorPornSprite = createSprite(width/2, 560);
+    censorPornSprite.addImage(loadImage('assets/sexroom/censorbutton.png'));
+
+  // Create hetero sprites
+    hetSprite = createSprite(width/2, height/2);
+    hetSprite.addImage(loadImage('assets/hetroom/straightcouple.png'));
+
+    person1Exclaim = createSprite(910, 50);
+    person1Exclaim.addImage(loadImage('assets/hetroom/exclaim.png'));
+    person2Exclaim = createSprite(690, 500);
+    person2Exclaim.addImage(loadImage('assets/hetroom/exclaim.png'));
+    person3Exclaim = createSprite(230, 120);
+    person3Exclaim.addImage(loadImage('assets/hetroom/exclaim.png'));
 
   // Setup detail bounce variables
   detailMove = 5;
   detailSpeed = .1;
+
+  // Het room movement variables
+  person1Move = 0;
+  person2Move = 0;
+  person3Move = 0;
+  person4Move = 0;
 
   // Control speeds of sprite animations
   spriteFrontIdle.frameDelay = 14;
@@ -331,6 +391,19 @@ textWindowPressed = function() {
     textWindow.height = sexyDialogue3.height;
     censorsOpen = true;
   }
+
+  // If we are in the hetero room and open to dialogue 1, clicking will change to dialogue 2
+  if (textWindow.image === hetDialogue1) {
+    textWindow.image = hetDialogue2;
+    textWindow.width = hetDialogue2.width;
+    textWindow.height = hetDialogue2.height;
+  }
+  else if (textWindow.image === hetDialogue2) {    
+    textWindow.image = hetDialogue3;
+    textWindow.width = hetDialogue3.width;
+    textWindow.height = hetDialogue3.height;
+    couplesOpen = true;
+  }
 }
 
 function setupInteractBox() {
@@ -350,8 +423,9 @@ interactButtonPressed = function() {
   }
 
   // Entering start screen
-  if (portalOpen) {
+  if ( (portalOpen) && (gameNotStarted) ) {
     adventureManager.changeState('Sexy', null);
+    gameNotStarted = false;
   }
 
   // Interacting with sexy ladies
@@ -361,6 +435,15 @@ interactButtonPressed = function() {
     textWindow.image = sexyDialogue1;
     textWindow.width = sexyDialogue1.width;
     textWindow.height = sexyDialogue1.height;
+  }
+
+  // Interacting with hetero couple
+  if (hetRoomActive) {
+    interactHetCouple = true;
+    textWindow.locate(150, 320);
+    textWindow.image = hetDialogue1;
+    textWindow.width = hetDialogue1.width;
+    textWindow.height = hetDialogue1.height;
   }
 }
 
@@ -404,7 +487,7 @@ class InstructionsScreen extends PNGRoom {
 
 class SexRoom extends PNGRoom {
   preload() {
-    // Draw sparkles and bubbles
+    // Load sexy room assets
     sexyDetail = loadImage('assets/sexroom/detail.png');
     sexyEsc = loadImage('assets/sexroom/escbutton.png')
     sexyPorn = loadImage('assets/sexroom/pornwindow.png');
@@ -442,7 +525,7 @@ class SexRoom extends PNGRoom {
       image(sexyPornBlack, width/2 - sexyPornBlack.width / 2, height/2 - sexyPornBlack.height / 2);
     }
 
-    // Draw mouse and cursors on top of images and sexySprite
+    // Draw mouse and cursors on top of images and sexySprite that wiggle left to right
     image(sexyMouse, 1000 + detailMove, 150);
     image(sexyMouse, 180 + detailMove, 520);
     image(sexyPointer, 800 + detailMove, 490);
@@ -496,6 +579,112 @@ class SexRoom extends PNGRoom {
     if ( (censoredXXX) && (censoredPorn) && (censored18Plus) ) {
       escActive = true;
       image(sexyEsc, 50, 50);
+    }
+  }
+}
+
+class HetRoom extends PNGRoom {
+  preload() {
+    // Load hetero room assets
+    hetDetail = loadImage('assets/hetroom/detail.png');
+    hetExit = loadImage('assets/hetroom/exit.png');
+    hetHearts = loadImage('assets/hetroom/floatyhearts.png');
+    hetMan = loadImage('assets/hetroom/man.png');
+    hetWoman = loadImage('assets/hetroom/woman.png');
+  }
+
+  draw() {
+    super.draw();
+    sexyRoomActive = false;
+    hetRoomActive = true;
+
+    // Draw straight couple sprite
+    drawSprite(hetSprite);
+
+    // Draw hearts around sprites that wiggle left to right
+    image(hetHearts, 270 + detailMove, 50);
+
+    // Draw men and women waiting to be paired up
+      // Couple 1
+      image(hetMan, 920, 50 + person1Move);
+      image(hetWoman, 850, 500);
+
+      // Couple 2
+      image(hetMan, 700 - person2Move, 500);
+      image(hetWoman, 400 + person3Move, 500);
+
+      // Couple 3
+      image(hetMan, 240, 120 + person4Move);
+      image(hetWoman, 176, 500);
+
+    // When prompted by dialogue 3, exclaim sprites guide the user to push the couples
+    if (couplesOpen) {
+      drawSprite(person1Exclaim);
+      drawSprite(person2Exclaim);
+      drawSprite(person3Exclaim);
+      if (playerSprite.overlap(person1Exclaim)) {
+        if (person1Move <= 440) {
+          person1Move = person1Move + 10;
+          // Exclaim sprites only disappear when couples are standing together
+          if (person1Move >= 400) {
+            person1Exclaim.remove();
+            couple1Done = true;
+          }
+        }
+      }
+      if (playerSprite.overlap(person2Exclaim)) {
+        if (person2Move <= 109) {
+          person2Move = person2Move + 10;
+          person3Move = person3Move + 10;
+          // Exclaim sprites only disappear when couples are standing together
+          if (person2Move >= 109) {
+            person2Exclaim.remove();
+            couple2Done = true;
+          }
+        }
+      }
+      if (playerSprite.overlap(person3Exclaim)) {
+        if (person4Move <= 370) {
+          person4Move = person4Move + 10;
+          // Exclaim sprites only disappear when couples are standing together
+          if (person4Move >= 370) {
+            person3Exclaim.remove();
+            couple3Done = true;
+          }
+        }
+      }
+    }
+
+    // Exit sign appears when all couples have been pushed together
+    if ( (couple1Done) && (couple2Done) && (couple3Done) ) {
+      exitActive = true;
+      image(hetExit, 50, 50);
+    }
+
+    // Draw sparkles
+    image(hetDetail, 0, 0 + detailMove);
+
+    // Make sparkles and bubbles in hetDetail bounce
+    if (detailMove > 10) {
+      detailSpeed = -.2;
+    }
+
+    if (detailMove < 0) {
+      detailSpeed = .2;
+    }
+
+    detailMove = detailMove + detailSpeed;
+
+    // The interact button will only prompt if you are overlapping with the hetero couple
+    // Once you interact with them, the button diappears so you can click on the text window
+    if( (playerSprite.overlap(hetSprite)) && (!interactHetCouple) ) {
+      interactButton.locate(playerSprite.position.x - 40, playerSprite.position.y - 140);
+      interactButton.draw();
+    }
+
+    // If you interact with the porn window, the text window appears
+    if( (interactHetCouple) && (!exitActive) ) {
+      textWindow.draw();
     }
   }
 }
