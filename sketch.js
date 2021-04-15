@@ -855,12 +855,6 @@ class WhiteRoom extends PNGRoom {
     image(whitePortrait2, 40, 80);
     image(whitePortrait3, 950, 200);
 
-    // Draw hearts around sprites that wiggle left to right
-    image(whiteHearts, width/2 - 200 + detailMove, height/2 - 300);
-
-    // Draw sparkles
-    image(whiteDetail, 0, 0 + detailMove);
-
     if (deathOpen) {
       drawSprite(whiteSkull);
       if ( playerSprite.overlap(whiteSkull) ) {
@@ -879,6 +873,12 @@ class WhiteRoom extends PNGRoom {
       image(whiteFin, 1000, 50);
       rectRight.setCollider('rectangle', 0, 0, 0, 0);
     }
+
+    // Draw hearts around sprites that wiggle left to right
+    image(whiteHearts, width/2 - 200 + detailMove, height/2 - 300);
+
+    // Draw sparkles
+    image(whiteDetail, 0, 0 + detailMove);
 
     // Make sparkles and bubbles in whiteDetails bounce
     if (detailMove > 10) {
