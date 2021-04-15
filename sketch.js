@@ -37,6 +37,16 @@ var spriteLeftWalk;;
 var spriteRightWalk;
 var spriteBackWalk;
 
+// Collision variables
+var rectTop;
+var rectLeft;
+var rectRight;
+var rectBottom;
+var topUnlock = false;
+var leftUnlock = false;
+var rightUnlock = false;
+var bottomUnlock = false;
+
 // Instructions sprite variables
 var starSprite;
 var startScreenSprite;
@@ -47,11 +57,15 @@ var censorXXXSprite;
 var censorPornSprite;
 var censor18PlusSprite;
 
-// Hetero sprite vairables
+// Hetero sprite variables
 var hetSprite;
 var person1Exclaim;
 var person2Exclaim;
 var person3Exclaim;
+
+// Lesbian sprite variables
+var lesbianSprite;
+var whiteSkull;
 
 // Button variables
 var textWindow;
@@ -91,6 +105,18 @@ var hetCouple;
 var hetMan;
 var hetWoman;
 
+// White room image variables
+var whiteDetail;
+var whiteDialogue1;
+var whiteDialogue2;
+var whiteDialogue3;
+var whiteFin;
+var whiteHearts;
+var whitePortrait1;
+var whitePortrait2;
+var whitePortrait3;
+var whiteCoupleDead;
+
 // Detail movement variables
 var detailMove;
 var detailSpeed;
@@ -116,6 +142,13 @@ var exitActive = false;
 var couple1Done = false;
 var couple2Done = false;
 var couple3Done = false;
+
+// Interaction booleans for white room
+var whiteRoomActive = false;
+var interactLesbians = false;
+var deathOpen = false;
+var deathHappened = false;
+var finActive = false;
 
 // Hetero room movement variables
 var person1Move;
@@ -172,6 +205,23 @@ function setup() {
   // Create MC sprite
   playerSprite = createSprite(width/2, height/2);
 
+  // Create collision sprites
+    rectTop = createSprite(0,0);
+    rectTop.addImage(loadImage('assets/width.png'));
+    rectTop.setCollider('rectangle', 0, 0, width*2, 1);
+
+    rectBottom = createSprite(width,height);
+    rectBottom.addImage(loadImage('assets/width.png'));
+    rectBottom.setCollider('rectangle', 0, 0, width*2, 1);
+
+    rectLeft = createSprite(0,0);
+    rectLeft.addImage(loadImage('assets/height.png'));
+    rectLeft.setCollider('rectangle', 0, 0, 1, height*2);
+
+    rectRight = createSprite(width,height);
+    rectRight.addImage(loadImage('assets/height.png'));
+    rectRight.setCollider('rectangle', 0, 0, 1, height*2);
+
   // Create sexy sprites
     starSprite = createSprite(width/2 - 450, height/2);
     starSprite.addImage(loadImage('assets/instructions/star.png'));
@@ -199,6 +249,13 @@ function setup() {
     person2Exclaim.addImage(loadImage('assets/hetroom/exclaim.png'));
     person3Exclaim = createSprite(230, 120);
     person3Exclaim.addImage(loadImage('assets/hetroom/exclaim.png'));
+
+  // Create lesbian sprites
+    lesbianSprite = createSprite(width/2, height/2);
+    lesbianSprite.addImage(loadImage('assets/whiteroom/couple.png'));
+
+    whiteSkull = createSprite(width/2 + 150, height/2 - 100);
+    whiteSkull.addImage(loadImage('assets/whiteroom/die.png'));
 
   // Setup detail bounce variables
   detailMove = 5;
@@ -404,6 +461,19 @@ textWindowPressed = function() {
     textWindow.height = hetDialogue3.height;
     couplesOpen = true;
   }
+
+  // If we are in the white room and open to dialogue 1, clicking will change to dialogue 2
+  if (textWindow.image === whiteDialogue1) {
+    textWindow.image = whiteDialogue2;
+    textWindow.width = whiteDialogue2.width;
+    textWindow.height = whiteDialogue2.height;
+  }
+  else if (textWindow.image === whiteDialogue2) {    
+    textWindow.image = whiteDialogue3;
+    textWindow.width = whiteDialogue3.width;
+    textWindow.height = whiteDialogue3.height;
+    deathOpen = true;
+  }
 }
 
 function setupInteractBox() {
@@ -445,9 +515,57 @@ interactButtonPressed = function() {
     textWindow.width = hetDialogue1.width;
     textWindow.height = hetDialogue1.height;
   }
+
+  // Interacting with lesbians
+  if (whiteRoomActive) {
+    interactLesbians = true;
+    textWindow.locate(800, 50);
+    textWindow.image = whiteDialogue1;
+    textWindow.width = whiteDialogue1.width;
+    textWindow.height = whiteDialogue1.height;
+  }
 }
 
-//-------------- SUBCLASSES / YOUR DRAW CODE CAN GO HERE ---------------//
+//-------------- COLLISIONS ---------------//
+
+function makeCollisions() {
+  playerSprite.collide(rectTop);
+  playerSprite.collide(rectLeft);
+  playerSprite.collide(rectBottom);
+  playerSprite.collide(rectRight);
+  drawSprite(rectTop);
+  drawSprite(rectLeft);
+  drawSprite(rectBottom);
+  drawSprite(rectRight);
+  rectTop.setCollider('rectangle', 0, 0, width*2, 1);
+  rectBottom.setCollider('rectangle', 0, 0, width*2, 1);
+  rectLeft.setCollider('rectangle', 0, 0, 1, height*2);
+  rectRight.setCollider('rectangle', 0, 0, 1, height*2);
+}
+
+function checkCollisions() {
+  if (topUnlock) {
+    rectTop.remove();
+  }
+  if (leftUnlock) {
+    rectLeft.remove();
+  }
+  if (bottomUnlock) {
+    rectBottom.remove();
+  }
+  if (rightUnlock) {
+    rectRight.remove();
+  }
+}
+
+function resetCollisions() {
+  topUnlock = false;
+  leftUnlock = false;
+  rightUnlock = false;
+  bottomUnlock = false;
+}
+
+//-------------- SUBCLASSES ---------------//
 
 class InstructionsScreen extends PNGRoom {
   preload() {
@@ -502,6 +620,8 @@ class SexRoom extends PNGRoom {
   draw() {
     super.draw();
     sexyRoomActive = true;
+    makeCollisions();
+    resetCollisions();
 
     // Draw porn window with lesbians inside
     drawSprite(sexySprite);
@@ -578,10 +698,15 @@ class SexRoom extends PNGRoom {
     }
 
     // If all censor buttons are pressed, the escape window will appear
+    // Remove the left collision
     if ( (censoredXXX) && (censoredPorn) && (censored18Plus) ) {
       escActive = true;
+      leftUnlock = true;
+      rectLeft.setCollider('rectangle', 0, 0, 0, 0);
       image(sexyEsc, 50, 50);
     }
+
+    checkCollisions();
   }
 }
 
@@ -597,8 +722,13 @@ class HetRoom extends PNGRoom {
 
   draw() {
     super.draw();
+    makeCollisions();
+    resetCollisions();
     sexyRoomActive = false;
     hetRoomActive = true;
+
+    // Allow sprite to walk through from the right
+    rectRight.setCollider('rectangle', 0, 0, 0, 0);
 
     // Draw straight couple sprite
     drawSprite(hetSprite);
@@ -661,6 +791,7 @@ class HetRoom extends PNGRoom {
     if ( (couple1Done) && (couple2Done) && (couple3Done) ) {
       exitActive = true;
       image(hetExit, 50, 50);
+      rectTop.setCollider('rectangle', 0, 0, 0, 0);
     }
 
     // Draw sparkles
@@ -684,8 +815,91 @@ class HetRoom extends PNGRoom {
       interactButton.draw();
     }
 
-    // If you interact with the porn window, the text window appears
+    // If you interact with the hetero couple, the text window appears
     if( (interactHetCouple) && (!exitActive) ) {
+      textWindow.draw();
+    }
+  }
+}
+
+class WhiteRoom extends PNGRoom {
+  preload() {
+    // Load white room assets
+    whiteDetail = loadImage('assets/whiteroom/details.png');
+    whiteDialogue1 = loadImage('assets/whiteroom/dialogue1.png');
+    whiteDialogue2 = loadImage('assets/whiteroom/dialogue2.png');
+    whiteDialogue3 = loadImage('assets/whiteroom/dialogue3.png');
+    whiteFin = loadImage('assets/whiteroom/fin.png');
+    whiteHearts = loadImage('assets/whiteroom/floatyhearts.png');
+    whitePortrait1 = loadImage('assets/whiteroom/portrait1.png');
+    whitePortrait2 = loadImage('assets/whiteroom/portrait2.png');
+    whitePortrait3 = loadImage('assets/whiteroom/portrait3.png');
+    whiteCoupleDead = loadImage('assets/whiteroom/coupledead.png');
+  }
+
+  draw() {
+    super.draw();
+    makeCollisions();
+    resetCollisions();
+    hetRoomActive = false;
+    whiteRoomActive = true;
+
+    // Allow sprite to walk through from the bottom
+    rectBottom.setCollider('rectangle', 0, 0, 0, 0);
+
+    // Draw lesbian sprite
+    drawSprite(lesbianSprite);
+
+    // Draw portraits of white women
+    image(whitePortrait1, 90, 300);
+    image(whitePortrait2, 40, 80);
+    image(whitePortrait3, 950, 200);
+
+    // Draw hearts around sprites that wiggle left to right
+    image(whiteHearts, width/2 - 200 + detailMove, height/2 - 300);
+
+    // Draw sparkles
+    image(whiteDetail, 0, 0 + detailMove);
+
+    if (deathOpen) {
+      drawSprite(whiteSkull);
+      if ( playerSprite.overlap(whiteSkull) ) {
+        whiteSkull.remove();
+        deathHappened = true;
+      }
+    }
+
+    if (deathHappened) {
+      lesbianSprite.remove();
+      image(whiteCoupleDead, width/2 - whiteCoupleDead.width / 2, height/2 - whiteCoupleDead.height / 2);
+      finActive = true;
+    }
+
+    if (finActive) {
+      image(whiteFin, 1000, 50);
+      rectRight.setCollider('rectangle', 0, 0, 0, 0);
+    }
+
+    // Make sparkles and bubbles in whiteDetails bounce
+    if (detailMove > 10) {
+      detailSpeed = -.2;
+    }
+
+    if (detailMove < 0) {
+      detailSpeed = .2;
+    }
+
+    detailMove = detailMove + detailSpeed;
+
+    // The interact button will only prompt if you are overlapping with the lesbians
+    // Once you interact with them, the button diappears so you can click on the text window
+    if( (playerSprite.overlap(lesbianSprite)) && (!interactLesbians) ) {
+      interactButton.locate(playerSprite.position.x - 40, playerSprite.position.y - 140);
+      interactButton.draw();
+    }
+
+    // If you interact with the lesbians, the text window appears
+    if( (interactLesbians) && (!finActive) ) {
       textWindow.draw();
     }
   }
