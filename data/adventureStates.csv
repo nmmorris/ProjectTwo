@@ -3,4 +3,5 @@ ID,StateName,ClassName,PNGFilename,CollisionFilename
 1,Sexy,SexRoom,assets/sexroom/background.png,
 2,Het,HetRoom,assets/hetroom/background.png,
 3,White,WhiteRoom,assets/whiteroom/background.png,
-4,Evil,PNGRoom,assets/room_meanroom.png,
+4,Evil,EvilRoom,assets/evilroom/background.png,
+5,End,EndRoom,assets/end/background.png,

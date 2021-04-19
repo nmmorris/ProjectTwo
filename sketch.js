@@ -117,6 +117,39 @@ var whitePortrait2;
 var whitePortrait3;
 var whiteCoupleDead;
 
+// Evil room image variables
+var evilDetail;
+var evilBlood;
+var evilBlood1;
+var evilBlood2;
+var evilBlood3;
+var evilDialogue1;
+var evilDialogue2;
+var evilDialogue3;
+var evilSprite;
+var evilExit;
+var evilKey;
+var evilLock;
+var evilGate;
+
+// Evil room movement variables
+var gateX;
+var gateY;
+var gateMove = 0;
+var gateMoving = false;
+
+// End room variables
+var endComplete;
+var endMirrorLayer;
+var endText1;
+var endText2;
+var endText3;
+var endText4;
+var endText5;
+var endMirrorLine;
+var endMirrorBlur;
+var mirrorSprite;
+
 // Detail movement variables
 var detailMove;
 var detailSpeed;
@@ -149,6 +182,13 @@ var interactLesbians = false;
 var deathOpen = false;
 var deathHappened = false;
 var finActive = false;
+
+// Interaction booleans for evil room
+var evilRoomActive = false;
+var interactEvil = false;
+var keyOpen = false;
+var gateClosed = false;
+var evilExitActive = false;
 
 // Hetero room movement variables
 var person1Move;
@@ -205,6 +245,9 @@ function setup() {
   // Create MC sprite
   playerSprite = createSprite(width/2, height/2);
 
+  // Mirror sprite
+  mirrorSprite = createSprite(width/2, height/2);
+
   // Create collision sprites
     rectTop = createSprite(0,0);
     rectTop.addImage(loadImage('assets/width.png'));
@@ -257,6 +300,16 @@ function setup() {
     whiteSkull = createSprite(width/2 + 150, height/2 - 100);
     whiteSkull.addImage(loadImage('assets/whiteroom/die.png'));
 
+  // Create evil sprites
+    evilSprite = createSprite(width/2, height/2);
+    evilSprite.addImage(loadImage('assets/evilroom/evilsprite.png'));
+
+    evilKey = createSprite(width/2 - 500, height/2);
+    evilKey.addImage(loadImage('assets/evilroom/key.png'));
+
+    evilLock = createSprite(width/2 + 500, height/2);
+    evilLock.addImage(loadImage('assets/evilroom/lock.png'));
+
   // Setup detail bounce variables
   detailMove = 5;
   detailSpeed = .1;
@@ -277,7 +330,7 @@ function setup() {
   spriteRightWalk.frameDelay = 12;
   spriteBackWalk.frameDelay = 12;
 
-  // Add animations
+  // MC sprite animations
   playerSprite.addAnimation('regular', spriteFrontIdle);
   playerSprite.addAnimation('frontWalk', spriteFrontWalk);
   playerSprite.addAnimation('leftIdle', spriteLeftIdle);
@@ -286,6 +339,16 @@ function setup() {
   playerSprite.addAnimation('rightWalk', spriteRightWalk);
   playerSprite.addAnimation('backIdle', spriteBackIdle);
   playerSprite.addAnimation('backWalk', spriteBackWalk);
+
+  // Mirror sprite animations
+  mirrorSprite.addAnimation('regular', spriteFrontIdle);
+  mirrorSprite.addAnimation('frontWalk', spriteFrontWalk);
+  mirrorSprite.addAnimation('leftIdle', spriteLeftIdle);
+  mirrorSprite.addAnimation('leftWalk', spriteLeftWalk);
+  mirrorSprite.addAnimation('rightIdle', spriteRightIdle);
+  mirrorSprite.addAnimation('rightWalk', spriteRightWalk);
+  mirrorSprite.addAnimation('backIdle', spriteBackIdle);
+  mirrorSprite.addAnimation('backWalk', spriteBackWalk);
 
   // Default animation front idle
   lastKeyPressed = keyFront;
@@ -350,50 +413,64 @@ function mouseReleased() {
 function moveSprite() {
   if(keyIsDown(RIGHT_ARROW)) {
     playerSprite.velocity.x = 10;
+    mirrorSprite.velocity.x = 10;
     playerSprite.changeAnimation('rightWalk');
+    mirrorSprite.changeAnimation('rightWalk');
     lastKeyPressed = keyRight;
     keyHeld = true;
   }
   else if(keyIsDown(LEFT_ARROW)) {
     playerSprite.velocity.x = -10;
+    mirrorSprite.velocity.x = -10;
     playerSprite.changeAnimation('leftWalk');
+    mirrorSprite.changeAnimation('leftWalk');
     lastKeyPressed = keyLeft;
     keyHeld = true;
   }
   else {
     playerSprite.velocity.x = 0;
+    mirrorSprite.velocity.x = 0;
     keyHeld = false;
   }
 
   if(keyIsDown(DOWN_ARROW)) {
     playerSprite.velocity.y = 10;
+    mirrorSprite.velocity.y = 10;
     playerSprite.changeAnimation('frontWalk');
+    mirrorSprite.changeAnimation('backWalk');
     lastKeyPressed = keyFront;
     keyHeld = true;
   }
   else if(keyIsDown(UP_ARROW)) {
     playerSprite.velocity.y = -10;
+    mirrorSprite.velocity.y = -10;
     playerSprite.changeAnimation('backWalk');
+    mirrorSprite.changeAnimation('frontWalk');
     lastKeyPressed = keyBack;
     keyHeld = true;
   }
   else {
     playerSprite.velocity.y = 0;
+    mirrorSprite.velocity.y = 0;
   }
 
 // Use lastKeyPressed to use idle animations
   if(!keyHeld) {
     if(lastKeyPressed === keyRight) {
       playerSprite.changeAnimation('rightIdle');
+      mirrorSprite.changeAnimation('rightIdle');
     }
     if(lastKeyPressed === keyLeft) {
       playerSprite.changeAnimation('leftIdle');
+      mirrorSprite.changeAnimation('leftIdle');
     }
     if(lastKeyPressed === keyFront) {
       playerSprite.changeAnimation('regular');
+      mirrorSprite.changeAnimation('backIdle');
     }
     if(lastKeyPressed === keyBack) {
       playerSprite.changeAnimation('backIdle');
+      mirrorSprite.changeAnimation('regular');
     }
   }
 }
@@ -474,6 +551,19 @@ textWindowPressed = function() {
     textWindow.height = whiteDialogue3.height;
     deathOpen = true;
   }
+
+  // If we are in the evil room and open to dialogue 1, clicking will change to dialogue 2
+  if (textWindow.image === evilDialogue1) {
+    textWindow.image = evilDialogue2;
+    textWindow.width = evilDialogue2.width;
+    textWindow.height = evilDialogue2.height;
+  }
+  else if (textWindow.image === evilDialogue2) {    
+    textWindow.image = evilDialogue3;
+    textWindow.width = evilDialogue3.width;
+    textWindow.height = evilDialogue3.height;
+    keyOpen = true;
+  }
 }
 
 function setupInteractBox() {
@@ -523,6 +613,15 @@ interactButtonPressed = function() {
     textWindow.image = whiteDialogue1;
     textWindow.width = whiteDialogue1.width;
     textWindow.height = whiteDialogue1.height;
+  }
+
+  // Interacting with villain
+  if (evilRoomActive) {
+    interactEvil = true;
+    textWindow.locate(900, 100);
+    textWindow.image = evilDialogue1;
+    textWindow.width = evilDialogue1.width;
+    textWindow.height = evilDialogue1.height;
   }
 }
 
@@ -902,5 +1001,135 @@ class WhiteRoom extends PNGRoom {
     if( (interactLesbians) && (!finActive) ) {
       textWindow.draw();
     }
+  }
+}
+
+class EvilRoom extends PNGRoom {
+  preload() {
+    // Load evil room assets
+    evilDetail = loadImage('assets/evilroom/details.png');
+    evilBlood = loadImage('assets/evilroom/bloodspatter.png');
+    evilBlood1 = loadImage('assets/evilroom/bloodspatter1.png');
+    evilBlood2 = loadImage('assets/evilroom/bloodspatter2.png');
+    evilBlood3 = loadImage('assets/evilroom/bloodspatter3.png');
+    evilDialogue1 = loadImage('assets/evilroom/dialogue1.png');
+    evilDialogue2 = loadImage('assets/evilroom/dialogue2.png');
+    evilDialogue3 = loadImage('assets/evilroom/dialogue3.png');
+    evilExit = loadImage('assets/evilroom/exittriangle.png');
+    evilGate = loadImage('assets/evilroom/gate.png');
+  }
+
+  draw() {
+    super.draw();
+    makeCollisions();
+    resetCollisions();
+    whiteRoomActive = false;
+    evilRoomActive = true;
+
+    // Allow sprite to walk through from the left
+    rectLeft.setCollider('rectangle', 0, 0, 0, 0);
+
+    // Draw evil sprite
+    drawSprite(evilSprite);
+
+    // Draw blood spatter
+    image(evilBlood, 90, 200);
+    image(evilBlood1, 90, 450);
+    image(evilBlood2, 40, 80);
+    image(evilBlood3, 1000, 400);
+
+    // When the third dialogue is prompted, the key is displayed and the cell gate appears
+    if (keyOpen) {
+      gateX = -1000;
+      gateY = 30;
+      image(evilGate, gateX + gateMove, gateY);
+      drawSprite(evilKey);
+      if ( playerSprite.overlap(evilKey)) {
+        evilKey.remove();
+        gateMoving = true;
+      }
+    }
+
+    // When the player overlaps with the key, the gate will move with the player
+    // The gate stops moving when the player reaches the lock on the other side of the room
+    if (gateMoving) {
+      drawSprite(evilLock);
+      gateMove = playerSprite.position.x;
+      if ( playerSprite.overlap(evilLock)) {
+        evilLock.remove();
+        gateMoving = false;
+        gateClosed = true;
+      }
+    }
+
+    // When the gate is fully closed, the exit sign appears
+    if (gateClosed) {
+      evilExitActive = true;
+    }
+
+    // Draw sparkles
+    image(evilDetail, 0, 0 + detailMove);
+
+    // Make sparkles and bubbles in evilDetail bounce
+    if (detailMove > 10) {
+      detailSpeed = -.2;
+    }
+
+    if (detailMove < 0) {
+      detailSpeed = .2;
+    }
+
+    detailMove = detailMove + detailSpeed;
+
+    // Draw exit triangle when activated and remove collider on top
+    if (evilExitActive) {
+      image(evilExit, 900, 10);
+      rectTop.setCollider('rectangle', 0, 0, 0, 0);
+    }
+
+    // The interact button will only prompt if you are overlapping with the villain
+    // Once you interact with them, the button diappears so you can click on the text window
+    if( (playerSprite.overlap(evilSprite)) && (!interactEvil) ) {
+      interactButton.locate(playerSprite.position.x - 40, playerSprite.position.y - 140);
+      interactButton.draw();
+    }
+
+    // If you interact with the villain, the text window appears
+    if( (interactEvil) && (!evilExitActive) ) {
+      textWindow.draw();
+    }
+  }
+}
+
+class EndRoom extends PNGRoom {
+  preload() {
+    // Load end room assets
+    endMirrorLayer = loadImage('assets/end/mirrorlayer.png');
+    endMirrorLine = loadImage('assets/end/mirrorline.png');
+    endMirrorBlur = loadImage('assets/end/mirrorblur.png');
+  }
+
+  draw() {
+    super.draw();
+    makeCollisions();
+    resetCollisions();
+    evilRoomActive = false;
+
+    // Allow sprite to walk through from the bottom
+    rectBottom.setCollider('rectangle', 0, 0, 0, 0);
+
+    // Only allow Sprite to walk up to mirror
+    rectTop.setCollider('rectangle', 0, 500, width*2, 1);
+
+    // Mirror sprite is drawn underneath the mirror layer
+    // Always appears 200 pixels above the MC sprite
+    drawSprite(mirrorSprite);
+    mirrorSprite.position.x = playerSprite.position.x;
+    mirrorSprite.position.y = playerSprite.position.y - 200;
+
+    // Add in mirror details on top and the mirror layer so mirror sprite is hidden
+    image(endMirrorBlur, width/2 - endMirrorBlur.width/2, height/2 - endMirrorBlur.height/2);
+    image(endMirrorLayer, 0, 0);
+    image(endMirrorLine, width/2 - endMirrorLine.width/2, height/2 - endMirrorLine.height/2);
   }
 }
