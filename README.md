@@ -18,3 +18,6 @@ to create its immersive maze experience.
 
 Adobe XD Outline:
 https://xd.adobe.com/view/e28b4efe-7ef9-495d-8307-e121856bb1f4-b7d8/?fullscreen
+
+Live link:
+http://xarts.usfca.edu/~nmmorris/visibility/
