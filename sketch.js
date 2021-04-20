@@ -1,6 +1,14 @@
 /***********************************************************************************
-  Project 2: Lesbian Visibility Maze Game
-  by Natalie Morris
+    Project 2: The Lesbian Visibility Maze Game
+    by Natalie Morris
+
+  The Lesbian Visibility Maze Game allows the user to navigate a series of rooms 
+  they must escape, each representing a different way lesbianism exists in media 
+  representation.
+
+  This program uses the p5.play game library and the utilization of state machines, 
+  conditional logic, classes, animation, collision detection, and micro-interactions, 
+  to create its immersive maze experience.
 
 ***********************************************************************************/
 
@@ -503,7 +511,7 @@ function setupTextWindow() {
   textWindow.width = instructions1.width;
   textWindow.height = instructions1.height;
 
-  textWindow.locate(width/2 - 240, height/2 - 300);
+  textWindow.locate(width/2 - textWindow.width/2, height/2 - textWindow.height/2 - 200);
   textWindow.onPress = textWindowPressed;
 }
 
@@ -1185,8 +1193,8 @@ class EndRoom extends PNGRoom {
     image(endMirrorLine, width/2 - endMirrorLine.width/2, height/2 - endMirrorLine.height/2);
 
     // When player approaches the mirror, interaction button prompts
-    if( (playerSprite.position.y < 600) && (playerSprite.position.x > 450) 
-      && (playerSprite.position.x < 800) && (!gameOver) ) {
+    if( (playerSprite.position.y < 600) && (playerSprite.position.x > 450)  
+      && (playerSprite.position.x < 800) && (!gameOver) && (!interactMirror) ) {
       interactButton.locate(playerSprite.position.x - 40, playerSprite.position.y - 140);
       interactButton.draw();
     }
