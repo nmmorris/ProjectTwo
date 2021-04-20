@@ -141,11 +141,11 @@ var gateMoving = false;
 // End room variables
 var endComplete;
 var endMirrorLayer;
-var endText1;
-var endText2;
-var endText3;
-var endText4;
-var endText5;
+var endDialogue1;
+var endDialogue2;
+var endDialogue3;
+var endDialogue4;
+var endDialogue5;
 var endMirrorLine;
 var endMirrorBlur;
 var mirrorSprite;
@@ -189,6 +189,11 @@ var interactEvil = false;
 var keyOpen = false;
 var gateClosed = false;
 var evilExitActive = false;
+
+// Interaction booleans for end room
+var endRoomActive = false;
+var gameOver = false;
+var interactMirror = false;
 
 // Hetero room movement variables
 var person1Move;
@@ -564,6 +569,31 @@ textWindowPressed = function() {
     textWindow.height = evilDialogue3.height;
     keyOpen = true;
   }
+
+  // If we are in the end room and open to dialogue 1, clicking will change to dialogue 2
+  if (textWindow.image === endDialogue1) {
+    textWindow.image = endDialogue2;
+    textWindow.width = endDialogue2.width;
+    textWindow.height = endDialogue2.height;
+  }
+  else if (textWindow.image === endDialogue2) {    
+    textWindow.image = endDialogue3;
+    textWindow.width = endDialogue3.width;
+    textWindow.height = endDialogue3.height;
+  }
+  else if (textWindow.image === endDialogue3) {    
+    textWindow.image = endDialogue4;
+    textWindow.width = endDialogue4.width;
+    textWindow.height = endDialogue4.height;
+  }
+  else if (textWindow.image === endDialogue4) {    
+    textWindow.image = endDialogue5;
+    textWindow.width = endDialogue5.width;
+    textWindow.height = endDialogue5.height;
+  }
+  else if (textWindow.image === endDialogue5) {    
+    gameOver = true;
+  }  
 }
 
 function setupInteractBox() {
@@ -588,7 +618,7 @@ interactButtonPressed = function() {
     gameNotStarted = false;
   }
 
-  // Interacting with sexy ladies
+  // Interacting with sexy ladies in sexy room
   if (sexyRoomActive) {
     interactSexyLadies = true;
     textWindow.locate(100, 100);
@@ -597,7 +627,7 @@ interactButtonPressed = function() {
     textWindow.height = sexyDialogue1.height;
   }
 
-  // Interacting with hetero couple
+  // Interacting with hetero couple in hetero room
   if (hetRoomActive) {
     interactHetCouple = true;
     textWindow.locate(150, 320);
@@ -606,7 +636,7 @@ interactButtonPressed = function() {
     textWindow.height = hetDialogue1.height;
   }
 
-  // Interacting with lesbians
+  // Interacting with lesbians in white room
   if (whiteRoomActive) {
     interactLesbians = true;
     textWindow.locate(800, 50);
@@ -615,7 +645,7 @@ interactButtonPressed = function() {
     textWindow.height = whiteDialogue1.height;
   }
 
-  // Interacting with villain
+  // Interacting with villain in evil room
   if (evilRoomActive) {
     interactEvil = true;
     textWindow.locate(900, 100);
@@ -623,10 +653,20 @@ interactButtonPressed = function() {
     textWindow.width = evilDialogue1.width;
     textWindow.height = evilDialogue1.height;
   }
+
+  // Interacting with mirror in last room
+  if (endRoomActive) {
+    interactMirror = true;
+    textWindow.locate(width/2 - textWindow.width/2, height/2 - textWindow.height/2 - 150);
+    textWindow.image = endDialogue1;
+    textWindow.width = endDialogue1.width;
+    textWindow.height = endDialogue1.height;
+  }
 }
 
 //-------------- COLLISIONS ---------------//
 
+// Make collisions that guard the sides of the room so player cannot leave
 function makeCollisions() {
   playerSprite.collide(rectTop);
   playerSprite.collide(rectLeft);
@@ -642,6 +682,7 @@ function makeCollisions() {
   rectRight.setCollider('rectangle', 0, 0, 1, height*2);
 }
 
+// Check to see if collisions are still in place
 function checkCollisions() {
   if (topUnlock) {
     rectTop.remove();
@@ -657,6 +698,7 @@ function checkCollisions() {
   }
 }
 
+// Set collisions onto all sides again
 function resetCollisions() {
   topUnlock = false;
   leftUnlock = false;
@@ -954,6 +996,7 @@ class WhiteRoom extends PNGRoom {
     image(whitePortrait2, 40, 80);
     image(whitePortrait3, 950, 200);
 
+    // When dialogue is over, skull appears to kill the lesbian's lover
     if (deathOpen) {
       drawSprite(whiteSkull);
       if ( playerSprite.overlap(whiteSkull) ) {
@@ -962,12 +1005,14 @@ class WhiteRoom extends PNGRoom {
       }
     }
 
+    // When skull icon is collected, sprite is removed and replaced with image of lesbian alone
     if (deathHappened) {
       lesbianSprite.remove();
       image(whiteCoupleDead, width/2 - whiteCoupleDead.width / 2, height/2 - whiteCoupleDead.height / 2);
       finActive = true;
     }
 
+    // When lesbian is dead, "fin" paper appears and collider is removed on the right
     if (finActive) {
       image(whiteFin, 1000, 50);
       rectRight.setCollider('rectangle', 0, 0, 0, 0);
@@ -1107,6 +1152,12 @@ class EndRoom extends PNGRoom {
     endMirrorLayer = loadImage('assets/end/mirrorlayer.png');
     endMirrorLine = loadImage('assets/end/mirrorline.png');
     endMirrorBlur = loadImage('assets/end/mirrorblur.png');
+    endDialogue1 = loadImage('assets/end/endtext1.png');
+    endDialogue2 = loadImage('assets/end/endtext2.png');
+    endDialogue3 = loadImage('assets/end/endtext3.png');
+    endDialogue4 = loadImage('assets/end/endtext4.png');
+    endDialogue5 = loadImage('assets/end/endtext5.png');
+    endComplete = loadImage('assets/end/complete.png');
   }
 
   draw() {
@@ -1114,6 +1165,7 @@ class EndRoom extends PNGRoom {
     makeCollisions();
     resetCollisions();
     evilRoomActive = false;
+    endRoomActive = true;
 
     // Allow sprite to walk through from the bottom
     rectBottom.setCollider('rectangle', 0, 0, 0, 0);
@@ -1131,5 +1183,22 @@ class EndRoom extends PNGRoom {
     image(endMirrorBlur, width/2 - endMirrorBlur.width/2, height/2 - endMirrorBlur.height/2);
     image(endMirrorLayer, 0, 0);
     image(endMirrorLine, width/2 - endMirrorLine.width/2, height/2 - endMirrorLine.height/2);
+
+    // When player approaches the mirror, interaction button prompts
+    if( (playerSprite.position.y < 600) && (playerSprite.position.x > 450) 
+      && (playerSprite.position.x < 800) && (!gameOver) ) {
+      interactButton.locate(playerSprite.position.x - 40, playerSprite.position.y - 140);
+      interactButton.draw();
+    }
+
+    // If interaction button is pressed, but game isn't over yet
+    if( (interactMirror) && (!gameOver) ) {
+      textWindow.draw();
+    }
+
+    // When the dialogue is completed, game will end by prompting "game completed" text
+    if(gameOver) {
+      image(endComplete, width/2 - endComplete.width/2, endComplete.height/2 + 200);
+    }
   }
 }
